@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { z } from "zod";
 
 import {
   buildExpiredSessionCookie,
@@ -8,7 +9,14 @@ import {
 } from "../lib/session";
 import { applicationKeys, getApplicationLabel, getApplicationUrl } from "../constants/applications";
 import { loginSchema, registerSchema } from "../schemas/auth-schema";
-import { getSessionProfile, loginUser, logoutUser, registerUser } from "../services/auth-service";
+import {
+  createAuthHandoff,
+  exchangeAuthHandoff,
+  getSessionProfile,
+  loginUser,
+  logoutUser,
+  registerUser
+} from "../services/auth-service";
 
 function getRequestContext(request: Request) {
   return {
@@ -77,4 +85,36 @@ export async function applications(_request: Request, response: Response): Promi
       url: getApplicationUrl(key)
     }))
   });
+}
+
+const authorizeSchema = z.object({
+  application: z.enum(applicationKeys)
+});
+
+const exchangeSchema = z.object({
+  code: z.string().min(1, "Código de acesso é obrigatório."),
+  application: z.enum(applicationKeys)
+});
+
+export async function authorize(request: Request, response: Response): Promise<void> {
+  const data = authorizeSchema.parse(request.query);
+  const sessionToken = readCookieValue(request.headers.cookie, SESSION_COOKIE_NAME);
+
+  if (!sessionToken) {
+    response.redirect(`/?application=${data.application}`);
+    return;
+  }
+
+  const handoff = await createAuthHandoff(sessionToken, data.application);
+  const redirectUrl = new URL("/auth/callback", handoff.redirectUrl);
+  redirectUrl.searchParams.set("code", handoff.code);
+
+  response.redirect(redirectUrl.toString());
+}
+
+export async function exchange(request: Request, response: Response): Promise<void> {
+  const data = exchangeSchema.parse(request.body);
+  const result = await exchangeAuthHandoff(data.code, data.application);
+
+  response.status(200).json(result);
 }

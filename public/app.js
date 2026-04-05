@@ -19,6 +19,7 @@ const metricProduct = document.getElementById("metric-product");
 const metricStatus = document.getElementById("metric-status");
 const metricRole = document.getElementById("metric-role");
 const metricEmail = document.getElementById("metric-email");
+const initialSearchParams = new URLSearchParams(window.location.search);
 
 const PRODUCT_URLS = {
   erp: "http://localhost:3002",
@@ -55,6 +56,12 @@ function getSelectedProduct() {
   return productSwitcher.dataset.product || "erp";
 }
 
+function getAuthorizeUrl(product) {
+  const authorizeUrl = new URL("/auth/authorize", window.location.origin);
+  authorizeUrl.searchParams.set("application", product);
+  return authorizeUrl.toString();
+}
+
 function updateProductCopy(product) {
   const copy = PRODUCT_COPY[product] || PRODUCT_COPY.erp;
   const destinationUrl = PRODUCT_URLS[product] || PRODUCT_URLS.erp;
@@ -64,7 +71,7 @@ function updateProductCopy(product) {
   introDescription.textContent = copy.description;
   metricProduct.textContent = copy.label;
   productDestination.textContent = `Destino após login: ${copy.label} em ${destinationUrl}`;
-  openProductLink.href = destinationUrl;
+  openProductLink.href = getAuthorizeUrl(product);
   openProductLink.textContent = `Abrir ${copy.label}`;
 
   productButtons.forEach((button) => {
@@ -74,9 +81,7 @@ function updateProductCopy(product) {
 
 function redirectToSelectedProduct() {
   const product = getSelectedProduct();
-  const destinationUrl = PRODUCT_URLS[product] || PRODUCT_URLS.erp;
-
-  window.location.href = destinationUrl;
+  window.location.href = getAuthorizeUrl(product);
 }
 
 function setFeedback(type, message) {
@@ -122,7 +127,7 @@ function renderProfile(data) {
   metricStatus.textContent = "Online";
   metricRole.textContent = data.user?.role || "user";
   metricEmail.textContent = data.user?.email || "Sem sessão";
-  openProductLink.href = data.application?.url || PRODUCT_URLS[getSelectedProduct()];
+  openProductLink.href = getAuthorizeUrl(data.application?.key || getSelectedProduct());
 }
 
 function resetProfile() {
@@ -308,7 +313,13 @@ passwordToggleButtons.forEach((button) => {
 
 async function bootstrap() {
   await loadApplicationConfig();
-  updateProductCopy(getSelectedProduct());
+  const initialApplication = initialSearchParams.get("application");
+
+  if (initialApplication && PRODUCT_COPY[initialApplication]) {
+    updateProductCopy(initialApplication);
+  } else {
+    updateProductCopy(getSelectedProduct());
+  }
   await loadProfile();
 }
 

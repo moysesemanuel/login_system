@@ -15,6 +15,12 @@ export function hashSessionToken(sessionToken: string): string {
     .digest("hex");
 }
 
+export function hashHandoffCode(code: string): string {
+  return createHash("sha256")
+    .update(`handoff:${code}:${env.SESSION_SECRET}`)
+    .digest("hex");
+}
+
 export function getSessionExpiresAt(): Date {
   return new Date(Date.now() + SESSION_DURATION_IN_DAYS * 24 * 60 * 60 * 1000);
 }

@@ -27,6 +27,7 @@ model User {
   updatedAt    DateTime              @updatedAt
   sessions     Session[]
   appAccesses  UserApplicationAccess[]
+  handoffs     AuthHandoff[]
 }
 
 model Session {
@@ -54,4 +55,18 @@ model UserApplicationAccess {
 
   @@unique([userId, application])
   @@index([application])
+}
+
+model AuthHandoff {
+  id         String           @id @default(cuid())
+  codeHash   String           @unique
+  application ApplicationScope
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime         @default(now())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }

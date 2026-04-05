@@ -9,7 +9,12 @@ import {
   toApplicationScope
 } from "../constants/applications";
 import { prisma } from "../lib/prisma";
-import { createSessionToken, getSessionExpiresAt, hashSessionToken } from "../lib/session";
+import {
+  createSessionToken,
+  getSessionExpiresAt,
+  hashHandoffCode,
+  hashSessionToken
+} from "../lib/session";
 import { HttpError } from "../types/error";
 
 interface RegisterInput {
@@ -30,6 +35,8 @@ interface SessionContextInput {
   userAgent?: string;
   ipAddress?: string;
 }
+
+const AUTH_HANDOFF_DURATION_IN_MINUTES = 5;
 
 type UserWithAccess = User & {
   appAccesses: UserApplicationAccess[];
@@ -193,4 +200,72 @@ export async function logoutUser(sessionToken: string): Promise<void> {
       sessionTokenHash: hashSessionToken(sessionToken)
     }
   });
+}
+
+export async function createAuthHandoff(sessionToken: string, application: ApplicationKey) {
+  const session = await getSessionProfile(sessionToken);
+
+  const hasApplicationAccess = session.user.applications.some(
+    (access) => access.key === application
+  );
+
+  if (!hasApplicationAccess) {
+    throw new HttpError(403, "Usuário sem acesso ao aplicativo selecionado.");
+  }
+
+  const code = createSessionToken();
+  const expiresAt = new Date(Date.now() + AUTH_HANDOFF_DURATION_IN_MINUTES * 60 * 1000);
+
+  await prisma.authHandoff.create({
+    data: {
+      codeHash: hashHandoffCode(code),
+      application: toApplicationScope(application),
+      expiresAt,
+      userId: session.user.id
+    }
+  });
+
+  return {
+    code,
+    redirectUrl: getApplicationUrl(application)
+  };
+}
+
+export async function exchangeAuthHandoff(code: string, application: ApplicationKey) {
+  const handoff = await prisma.authHandoff.findUnique({
+    where: {
+      codeHash: hashHandoffCode(code)
+    },
+    include: {
+      user: {
+        include: {
+          appAccesses: true
+        }
+      }
+    }
+  });
+
+  if (!handoff || handoff.expiresAt <= new Date() || handoff.consumedAt) {
+    throw new HttpError(401, "Código de acesso inválido ou expirado.");
+  }
+
+  if (handoff.application !== toApplicationScope(application)) {
+    throw new HttpError(403, "Código incompatível com a aplicação.");
+  }
+
+  await prisma.authHandoff.update({
+    where: { id: handoff.id },
+    data: {
+      consumedAt: new Date()
+    }
+  });
+
+  return {
+    application: {
+      key: application,
+      label: getApplicationLabel(application),
+      url: getApplicationUrl(application)
+    },
+    user: sanitizeUser(handoff.user)
+  };
 }
