@@ -92,6 +92,36 @@
 
         <div id="feedback" class="feedback" aria-live="polite"></div>
 
+        <form id="reset-password-form" class="auth-form auth-form--secondary">
+          <label>
+            <span>Nova senha</span>
+            <div class="password-field">
+              <input
+                name="password"
+                type="password"
+                placeholder="Crie sua nova senha"
+                required
+              />
+              <button
+                class="password-toggle"
+                type="button"
+                data-target="password"
+                aria-label="Mostrar senha"
+              >
+                <span class="password-toggle__icon" aria-hidden="true"></span>
+              </button>
+            </div>
+          </label>
+
+          <p class="form-hint">
+            Use pelo menos 8 caracteres, com letra maiúscula, minúscula e número.
+          </p>
+
+          <button class="primary-button" data-idle-text="Salvar nova senha" type="submit">
+            Salvar nova senha
+          </button>
+        </form>
+
         <form id="login-form" class="auth-form is-visible">
           <label>
             <span>E-mail</span>

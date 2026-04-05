@@ -8,6 +8,8 @@ import {
   getApplicationUrl,
   toApplicationScope
 } from "../constants/applications";
+import { env } from "../config/env";
+import { sendPasswordResetEmail } from "../lib/mailer";
 import { prisma } from "../lib/prisma";
 import {
   createSessionToken,
@@ -285,6 +287,9 @@ export async function requestPasswordReset(email: string) {
 
   const token = createSessionToken();
   const expiresAt = new Date(Date.now() + PASSWORD_RESET_DURATION_IN_MINUTES * 60 * 1000);
+  const resetUrl = new URL("/", env.APP_URL);
+  resetUrl.searchParams.set("mode", "reset-password");
+  resetUrl.searchParams.set("token", token);
 
   await prisma.passwordResetToken.create({
     data: {
@@ -294,12 +299,59 @@ export async function requestPasswordReset(email: string) {
     }
   });
 
+  await sendPasswordResetEmail({
+    email: user.email,
+    name: user.name,
+    resetUrl: resetUrl.toString()
+  });
+
   return {
-    message: "Solicitação registrada. Configure o envio de e-mail para concluir a recuperação.",
-    ...(process.env.NODE_ENV === "development"
-      ? {
-          resetTokenPreview: token
-        }
-      : {})
+    message: "Enviamos as instruções de recuperação para o seu e-mail."
+  };
+}
+
+export async function resetPassword(token: string, password: string) {
+  const passwordResetToken = await prisma.passwordResetToken.findUnique({
+    where: {
+      tokenHash: hashPasswordResetToken(token)
+    }
+  });
+
+  if (
+    !passwordResetToken ||
+    passwordResetToken.expiresAt <= new Date() ||
+    passwordResetToken.consumedAt
+  ) {
+    throw new HttpError(400, "Token de redefinição inválido ou expirado.");
+  }
+
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  await prisma.$transaction([
+    prisma.user.update({
+      where: {
+        id: passwordResetToken.userId
+      },
+      data: {
+        passwordHash
+      }
+    }),
+    prisma.passwordResetToken.update({
+      where: {
+        id: passwordResetToken.id
+      },
+      data: {
+        consumedAt: new Date()
+      }
+    }),
+    prisma.session.deleteMany({
+      where: {
+        userId: passwordResetToken.userId
+      }
+    })
+  ]);
+
+  return {
+    message: "Senha redefinida com sucesso. Faça login com a nova senha."
   };
 }

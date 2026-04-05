@@ -8,6 +8,7 @@ import {
   login,
   logout,
   profile,
+  resetPasswordAction,
   register
 } from "../controllers/auth-controller";
 import { ensureAuthenticated } from "../middlewares/auth-middleware";
@@ -19,6 +20,7 @@ authRouter.post("/register", asyncHandler(register));
 authRouter.post("/login", asyncHandler(login));
 authRouter.post("/logout", asyncHandler(logout));
 authRouter.post("/forgot-password", asyncHandler(forgotPassword));
+authRouter.post("/reset-password", asyncHandler(resetPasswordAction));
 authRouter.post("/exchange", asyncHandler(exchange));
 authRouter.get("/authorize", asyncHandler(authorize));
 authRouter.get("/applications", asyncHandler(applications));

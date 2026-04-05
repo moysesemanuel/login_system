@@ -11,7 +11,9 @@ const envSchema = z.object({
   SESSION_SECRET: z.string().min(16, "SESSION_SECRET precisa ter pelo menos 16 caracteres."),
   APP_URL: z.string().url("APP_URL precisa ser uma URL válida."),
   SALES_SYSTEM_URL: z.string().url("SALES_SYSTEM_URL precisa ser uma URL válida."),
-  HELP_DESK_URL: z.string().url("HELP_DESK_URL precisa ser uma URL válida.")
+  HELP_DESK_URL: z.string().url("HELP_DESK_URL precisa ser uma URL válida."),
+  RESEND_API_KEY: z.string().min(1, "RESEND_API_KEY é obrigatória."),
+  EMAIL_FROM: z.string().min(1, "EMAIL_FROM é obrigatória.")
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

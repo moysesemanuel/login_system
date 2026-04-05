@@ -8,7 +8,12 @@ import {
   SESSION_COOKIE_NAME
 } from "../lib/session";
 import { applicationKeys, getApplicationLabel, getApplicationUrl } from "../constants/applications";
-import { forgotPasswordSchema, loginSchema, registerSchema } from "../schemas/auth-schema";
+import {
+  forgotPasswordSchema,
+  loginSchema,
+  registerSchema,
+  resetPasswordSchema
+} from "../schemas/auth-schema";
 import {
   createAuthHandoff,
   exchangeAuthHandoff,
@@ -16,6 +21,7 @@ import {
   loginUser,
   logoutUser,
   requestPasswordReset,
+  resetPassword,
   registerUser
 } from "../services/auth-service";
 
@@ -123,6 +129,13 @@ export async function exchange(request: Request, response: Response): Promise<vo
 export async function forgotPassword(request: Request, response: Response): Promise<void> {
   const data = forgotPasswordSchema.parse(request.body);
   const result = await requestPasswordReset(data.email);
+
+  response.status(200).json(result);
+}
+
+export async function resetPasswordAction(request: Request, response: Response): Promise<void> {
+  const data = resetPasswordSchema.parse(request.body);
+  const result = await resetPassword(data.token, data.password);
 
   response.status(200).json(result);
 }

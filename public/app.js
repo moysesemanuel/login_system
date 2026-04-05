@@ -3,6 +3,7 @@ const tabs = document.querySelector(".tabs");
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
 const forgotPasswordForm = document.getElementById("forgot-password-form");
+const resetPasswordForm = document.getElementById("reset-password-form");
 const feedback = document.getElementById("feedback");
 const profileOutput = document.getElementById("profile-output");
 const profileEmpty = document.getElementById("profile-empty");
@@ -13,6 +14,7 @@ const loginSubmitButton = loginForm.querySelector('button[type="submit"]');
 const registerSubmitButton = registerForm.querySelector('button[type="submit"]');
 const forgotPasswordToggle = document.getElementById("forgot-password-toggle");
 const forgotPasswordSubmitButton = forgotPasswordForm.querySelector('button[type="submit"]');
+const resetPasswordSubmitButton = resetPasswordForm.querySelector('button[type="submit"]');
 const passwordToggleButtons = document.querySelectorAll(".password-toggle");
 const introTitle = document.querySelector(".auth-panel__intro h2");
 const introDescription = document.querySelector(".auth-panel__intro p:last-child");
@@ -53,6 +55,7 @@ function setActiveTab(tabName) {
   loginForm.classList.toggle("is-visible", tabName === "login");
   registerForm.classList.toggle("is-visible", tabName === "register");
   forgotPasswordForm.classList.remove("is-visible");
+  resetPasswordForm.classList.remove("is-visible");
   clearFeedback();
 }
 
@@ -344,15 +347,57 @@ forgotPasswordForm.addEventListener("submit", async (event) => {
   }
 });
 
+resetPasswordForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  clearFeedback();
+  setButtonLoading(resetPasswordSubmitButton, "Salvando...");
+
+  const token = initialSearchParams.get("token");
+  const formData = new FormData(resetPasswordForm);
+  const body = Object.fromEntries(formData.entries());
+
+  try {
+    const payload = await request("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({
+        token,
+        password: body.password
+      })
+    });
+
+    setFeedback("success", payload.message);
+    resetPasswordForm.reset();
+    resetPasswordForm.classList.remove("is-visible");
+    loginForm.classList.add("is-visible");
+    initialSearchParams.delete("mode");
+    initialSearchParams.delete("token");
+    window.history.replaceState({}, "", window.location.pathname);
+  } catch (error) {
+    setFeedback("error", error.message);
+  } finally {
+    resetButton(resetPasswordSubmitButton);
+  }
+});
+
 async function bootstrap() {
   await loadApplicationConfig();
   const initialApplication = initialSearchParams.get("application");
+  const mode = initialSearchParams.get("mode");
+  const resetToken = initialSearchParams.get("token");
 
   if (initialApplication && PRODUCT_COPY[initialApplication]) {
     updateProductCopy(initialApplication);
   } else {
     updateProductCopy(getSelectedProduct());
   }
+
+  if (mode === "reset-password" && resetToken) {
+    loginForm.classList.remove("is-visible");
+    registerForm.classList.remove("is-visible");
+    forgotPasswordForm.classList.remove("is-visible");
+    resetPasswordForm.classList.add("is-visible");
+  }
+
   await loadProfile();
 }
 

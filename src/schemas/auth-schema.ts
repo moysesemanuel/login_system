@@ -27,3 +27,13 @@ export const loginSchema = z.object({
 export const forgotPasswordSchema = z.object({
   email: z.string().email("E-mail inválido.").trim().toLowerCase()
 });
+
+export const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Token é obrigatório."),
+  password: z
+    .string()
+    .min(8, "Senha deve ter pelo menos 8 caracteres.")
+    .regex(/[A-Z]/, "Senha deve conter pelo menos uma letra maiúscula.")
+    .regex(/[a-z]/, "Senha deve conter pelo menos uma letra minúscula.")
+    .regex(/\d/, "Senha deve conter pelo menos um número.")
+});
