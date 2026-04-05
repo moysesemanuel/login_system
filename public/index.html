@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <section class="auth-panel">
+        <div class="brand-lockup">
+          <div class="brand-logo" aria-label="DaBi Tech Digital Solutions" role="img">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="120 70 650 140"
+              preserveAspectRatio="xMinYMid meet"
+            >
+              <g transform="translate(120,85)">
+                <rect x="0" y="0" width="110" height="110" rx="24" ry="24" fill="#0B2A57" />
+
+                <g transform="translate(5,0)">
+                  <path
+                    d="M25 10 H53 C73 10 88 22 88 35 C88 48 73 60 53 60 H25 Z"
+                    fill="#ffffff"
+                  />
+                  <path
+                    d="M25 50 H53 C73 50 88 62 88 75 C88 88 73 100 53 100 H25 Z"
+                    fill="#00B6E6"
+                    opacity="0.6"
+                  />
+                </g>
+              </g>
+
+              <text
+                x="285"
+                y="145"
+                font-size="64"
+                font-family="Inter, system-ui, Arial, sans-serif"
+                font-weight="700"
+                fill="#FFFFFF"
+              >
+                DaBi Tech
+              </text>
+              <text
+                x="288"
+                y="190"
+                font-size="24"
+                font-family="Inter, system-ui, Arial, sans-serif"
+                font-weight="500"
+                fill="#00B6E6"
+                letter-spacing="1px"
+              >
+                DIGITAL SOLUTIONS
+              </text>
+            </svg>
+          </div>
+        </div>
+
+        <div class="auth-panel__intro">
+          <p class="eyebrow">Acesso ao sistema</p>
+          <h2>Entre na sua conta</h2>
+          <p>
+            Faça login para acessar sua área autenticada ou crie uma conta para testar o fluxo
+            completo.
+          </p>
+        </div>
+
+        <p id="product-destination" class="product-destination">
+          Destino após login: `ERP` em `http://localhost:3002`
+        </p>
+
+        <div class="product-switcher" data-product="erp">
+          <button class="product-button is-active" data-product="erp" type="button">
+            ERP
+          </button>
+          <button class="product-button" data-product="help-desk" type="button">
+            Help Desk
+          </button>
+        </div>
+
+        <div class="tabs" data-active="login">
+          <button class="tab-button is-active" data-tab="login" type="button">Entrar</button>
+          <button class="tab-button" data-tab="register" type="button">Cadastrar</button>
+        </div>
+
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+
+        <form id="login-form" class="auth-form is-visible">
+          <label>
+            <span>E-mail</span>
+            <input name="email" type="email" placeholder="voce@email.com" required />
+          </label>
+
+          <label>
+            <span>Senha</span>
+            <div class="password-field">
+              <input name="password" type="password" placeholder="Sua senha" required />
+              <button
+                class="password-toggle"
+                type="button"
+                data-target="password"
+                aria-label="Mostrar senha"
+              >
+                <span class="password-toggle__icon" aria-hidden="true"></span>
+              </button>
+            </div>
+          </label>
+
+          <button class="primary-button" data-idle-text="Entrar na conta" type="submit">
+            Entrar na conta
+          </button>
+        </form>
+
+        <form id="register-form" class="auth-form">
+          <label>
+            <span>Nome</span>
+            <input name="name" type="text" placeholder="Seu nome" required />
+          </label>
+
+          <label>
+            <span>E-mail</span>
+            <input name="email" type="email" placeholder="voce@email.com" required />
+          </label>
+
+          <label>
+            <span>Senha</span>
+            <div class="password-field">
+              <input
+                name="password"
+                type="password"
+                placeholder="Mínimo 8 caracteres"
+                required
+              />
+              <button
+                class="password-toggle"
+                type="button"
+                data-target="password"
+                aria-label="Mostrar senha"
+              >
+                <span class="password-toggle__icon" aria-hidden="true"></span>
+              </button>
+            </div>
+          </label>
+
+          <p class="form-hint">
+            Use pelo menos 8 caracteres, com letra maiúscula, minúscula e número.
+          </p>
+
+          <button class="primary-button" data-idle-text="Criar conta" type="submit">
+            Criar conta
+          </button>
+        </form>
+
+        <section class="profile-card">
+          <div class="profile-card__header">
+            <div>
+              <p class="eyebrow">Sessão atual</p>
+              <h2>Área protegida</h2>
+            </div>
+            <button
+              id="logout-button"
+              class="ghost-button"
+              data-idle-text="Sair"
+              type="button"
+            >
+              Sair
+            </button>
+          </div>
+
+          <div class="profile-dashboard">
+            <article class="dashboard-metric">
+              <span class="dashboard-label">Produto</span>
+              <strong id="metric-product">ERP</strong>
+            </article>
+            <article class="dashboard-metric">
+              <span class="dashboard-label">Status</span>
+              <strong id="metric-status">Offline</strong>
+            </article>
+            <article class="dashboard-metric">
+              <span class="dashboard-label">Role</span>
+              <strong id="metric-role">Visitante</strong>
+            </article>
+            <article class="dashboard-metric dashboard-metric--wide">
+              <span class="dashboard-label">Usuário</span>
+              <strong id="metric-email">Sem sessão</strong>
+            </article>
+          </div>
+
+          <div id="profile-empty" class="profile-empty">
+            Faça login para carregar os dados retornados pela rota protegida.
+          </div>
+
+          <a
+            id="open-product-link"
+            class="open-product-link"
+            href="http://localhost:3002"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Abrir ERP
+          </a>
+
+          <pre id="profile-output" class="profile-output"></pre>
+        </section>
+      </section>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
