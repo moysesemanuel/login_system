@@ -31,3 +31,5 @@ app.get("/health", (_request, response) => {
 
 app.use("/auth", authRouter);
 app.use(errorHandler);
+
+export default app;
