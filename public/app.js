@@ -20,11 +20,11 @@ const metricStatus = document.getElementById("metric-status");
 const metricRole = document.getElementById("metric-role");
 const metricEmail = document.getElementById("metric-email");
 
-const TOKEN_KEY = "login-system-token";
 const PRODUCT_URLS = {
   erp: "http://localhost:3002",
   "help-desk": "http://localhost:3003"
 };
+
 const PRODUCT_COPY = {
   erp: {
     title: "Entre na sua conta",
@@ -92,18 +92,6 @@ function clearFeedback() {
   setFeedback("", "");
 }
 
-function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
-}
-
-function saveToken(token) {
-  localStorage.setItem(TOKEN_KEY, token);
-}
-
-function clearToken() {
-  localStorage.removeItem(TOKEN_KEY);
-}
-
 function setButtonLoading(button, loadingText) {
   button.disabled = true;
   button.classList.add("is-loading");
@@ -120,16 +108,21 @@ function setTabsDisabled(disabled) {
   tabButtons.forEach((button) => {
     button.disabled = disabled;
   });
+
+  productButtons.forEach((button) => {
+    button.disabled = disabled;
+  });
 }
 
 function renderProfile(data) {
   profileEmpty.style.display = "none";
   profileOutput.classList.add("is-visible");
   profileOutput.textContent = JSON.stringify(data, null, 2);
-  metricProduct.textContent = PRODUCT_COPY[getSelectedProduct()].label;
+  metricProduct.textContent = data.application?.label || PRODUCT_COPY[getSelectedProduct()].label;
   metricStatus.textContent = "Online";
   metricRole.textContent = data.user?.role || "user";
   metricEmail.textContent = data.user?.email || "Sem sessão";
+  openProductLink.href = data.application?.url || PRODUCT_URLS[getSelectedProduct()];
 }
 
 function resetProfile() {
@@ -167,6 +160,7 @@ function parseErrorMessage(payload) {
 
 async function request(path, options = {}) {
   const response = await fetch(path, {
+    credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers || {})
@@ -177,33 +171,41 @@ async function request(path, options = {}) {
   const payload = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(parseErrorMessage(payload));
+    const error = new Error(parseErrorMessage(payload));
+    error.status = response.status;
+    throw error;
   }
 
   return payload;
 }
 
-async function loadProfile() {
-  const token = getToken();
+async function loadApplicationConfig() {
+  try {
+    const payload = await request("/auth/applications", {
+      method: "GET"
+    });
 
-  if (!token) {
-    resetProfile();
-    return;
+    payload.applications.forEach((application) => {
+      PRODUCT_URLS[application.key] = application.url;
+    });
+  } catch {
+    // Keep localhost defaults during local fallback.
   }
+}
 
+async function loadProfile() {
   try {
     const payload = await request("/auth/me", {
-      method: "GET",
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
+      method: "GET"
     });
 
     renderProfile(payload);
   } catch (error) {
-    clearToken();
     resetProfile();
-    setFeedback("error", error.message);
+
+    if (error.status !== 401) {
+      setFeedback("error", error.message);
+    }
   }
 }
 
@@ -219,16 +221,16 @@ loginForm.addEventListener("submit", async (event) => {
   try {
     const payload = await request("/auth/login", {
       method: "POST",
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        ...body,
+        application: getSelectedProduct()
+      })
     });
 
-    saveToken(payload.token);
     setFeedback("success", payload.message);
     await loadProfile();
     loginForm.reset();
-    setTimeout(() => {
-      redirectToSelectedProduct();
-    }, 450);
+    setTimeout(() => redirectToSelectedProduct(), 450);
   } catch (error) {
     setFeedback("error", error.message);
   } finally {
@@ -249,17 +251,17 @@ registerForm.addEventListener("submit", async (event) => {
   try {
     const payload = await request("/auth/register", {
       method: "POST",
-      body: JSON.stringify(body)
+      body: JSON.stringify({
+        ...body,
+        application: getSelectedProduct()
+      })
     });
 
-    saveToken(payload.token);
     setActiveTab("login");
     setFeedback("success", payload.message);
     await loadProfile();
     registerForm.reset();
-    setTimeout(() => {
-      redirectToSelectedProduct();
-    }, 450);
+    setTimeout(() => redirectToSelectedProduct(), 450);
   } catch (error) {
     setFeedback("error", error.message);
   } finally {
@@ -273,7 +275,10 @@ logoutButton.addEventListener("click", async () => {
   setButtonLoading(logoutButton, "Saindo...");
 
   try {
-    clearToken();
+    await request("/auth/logout", {
+      method: "POST"
+    });
+
     resetProfile();
     setActiveTab("login");
     setFeedback("success", "Sessão encerrada.");
@@ -301,5 +306,10 @@ passwordToggleButtons.forEach((button) => {
   });
 });
 
-updateProductCopy(getSelectedProduct());
-loadProfile();
+async function bootstrap() {
+  await loadApplicationConfig();
+  updateProductCopy(getSelectedProduct());
+  await loadProfile();
+}
+
+bootstrap();

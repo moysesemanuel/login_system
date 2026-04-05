@@ -1,36 +1,30 @@
 import { NextFunction, Request, Response } from "express";
-import jwt from "jsonwebtoken";
 
-import { env } from "../config/env";
-import { UserRole } from "../models/user";
+import { readCookieValue, SESSION_COOKIE_NAME } from "../lib/session";
+import { getSessionProfile } from "../services/auth-service";
 
-interface TokenPayload {
-  sub: string;
-  email: string;
-  role: UserRole;
-}
-
-export function ensureAuthenticated(
+export async function ensureAuthenticated(
   request: Request,
   response: Response,
   next: NextFunction
-): void {
-  const authHeader = request.headers.authorization;
+): Promise<void> {
+  const sessionToken = readCookieValue(request.headers.cookie, SESSION_COOKIE_NAME);
 
-  if (!authHeader?.startsWith("Bearer ")) {
-    response.status(401).json({ message: "Token não enviado." });
+  if (!sessionToken) {
+    response.status(401).json({ message: "Sessão não encontrada." });
     return;
   }
 
-  const token = authHeader.replace("Bearer ", "");
-
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET) as TokenPayload;
+    const session = await getSessionProfile(sessionToken);
 
     request.auth = {
-      userId: payload.sub,
-      email: payload.email,
-      role: payload.role
+      sessionId: session.sessionId,
+      userId: session.user.id,
+      email: session.user.email,
+      role: session.user.role,
+      application: session.application.key,
+      redirectUrl: session.application.url
     };
 
     next();

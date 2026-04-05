@@ -1,13 +1,13 @@
 # Login System
 
-Projeto de autenticação feito para portfólio com foco em mostrar fundamentos importantes para trabalho freelancer e vagas internacionais:
+Central de autenticação para múltiplos projetos, preparada para `Neon + Vercel`.
 
-- API organizada por camadas
+- autenticação central para `ERP` e `Help Desk`
+- persistência em PostgreSQL com `Prisma`
+- sessão em cookie `HTTP-only`
 - interface web de login e cadastro
-- cadastro de usuário
-- login com JWT
-- rota protegida
-- hash de senha com `bcryptjs`
+- seleção da aplicação de destino
+- API organizada por camadas
 - validação de dados com `zod`
 
 ## Stack
@@ -15,7 +15,8 @@ Projeto de autenticação feito para portfólio com foco em mostrar fundamentos 
 - Node.js
 - TypeScript
 - Express
-- JWT
+- Prisma
+- PostgreSQL
 - Zod
 
 ## Como rodar
@@ -26,19 +27,31 @@ Projeto de autenticação feito para portfólio com foco em mostrar fundamentos 
 yarn install
 ```
 
-2. Crie o arquivo `.env`:
+2. Gere o client do Prisma:
+
+```bash
+yarn prisma:generate
+```
+
+3. Crie o arquivo `.env`:
 
 ```bash
 cp .env.example .env
 ```
 
-3. Inicie em desenvolvimento:
+4. Sincronize o banco:
+
+```bash
+yarn prisma:push
+```
+
+5. Inicie em desenvolvimento:
 
 ```bash
 yarn dev
 ```
 
-4. Abra no navegador:
+6. Abra no navegador:
 
 ```txt
 http://localhost:3333
@@ -52,7 +65,8 @@ http://localhost:3333
 {
   "name": "Moyses Costa",
   "email": "moyses@email.com",
-  "password": "Senha123"
+  "password": "Senha123",
+  "application": "erp"
 }
 ```
 
@@ -61,21 +75,31 @@ http://localhost:3333
 ```json
 {
   "email": "moyses@email.com",
-  "password": "Senha123"
+  "password": "Senha123",
+  "application": "help-desk"
 }
 ```
 
 ### `GET /auth/me`
 
-Envie o header:
+Lê a sessão pelo cookie `HTTP-only`.
 
-```txt
-Authorization: Bearer <token>
-```
+### `POST /auth/logout`
+
+Encerra a sessão atual e limpa o cookie.
+
+## Variáveis de ambiente
+
+- `DATABASE_URL`
+- `DIRECT_URL` opcional
+- `SESSION_SECRET`
+- `APP_URL`
+- `SALES_SYSTEM_URL`
+- `HELP_DESK_URL`
 
 ## Próximos passos
 
-- trocar o arquivo JSON por PostgreSQL
-- adicionar refresh token
 - criar fluxo de recuperação de senha
-- migrar a interface para React ou Next.js
+- implementar SSO real entre os apps publicados
+- criar autorização por permissões
+- migrar a interface para Next.js quando o auth central estabilizar

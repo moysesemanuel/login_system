@@ -1,12 +1,13 @@
-import { UserRole } from "../models/user";
-
 declare global {
   namespace Express {
     interface Request {
       auth?: {
+        sessionId: string;
         userId: string;
         email: string;
-        role: UserRole;
+        role: string;
+        application: "erp" | "help-desk";
+        redirectUrl: string;
       };
     }
   }

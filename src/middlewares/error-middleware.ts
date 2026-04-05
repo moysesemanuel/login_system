@@ -1,6 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodError } from "zod";
 
+import { HttpError } from "../types/error";
+
 export function errorHandler(
   error: Error,
   _request: Request,
@@ -15,7 +17,14 @@ export function errorHandler(
     return;
   }
 
-  response.status(400).json({
+  if (error instanceof HttpError) {
+    response.status(error.statusCode).json({
+      message: error.message
+    });
+    return;
+  }
+
+  response.status(500).json({
     message: error.message || "Erro interno no servidor."
   });
 }
