@@ -23,3 +23,7 @@ export const loginSchema = z.object({
     message: "Selecione uma aplicação válida."
   })
 });
+
+export const forgotPasswordSchema = z.object({
+  email: z.string().email("E-mail inválido.").trim().toLowerCase()
+});

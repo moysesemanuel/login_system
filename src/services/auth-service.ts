@@ -13,6 +13,7 @@ import {
   createSessionToken,
   getSessionExpiresAt,
   hashHandoffCode,
+  hashPasswordResetToken,
   hashSessionToken
 } from "../lib/session";
 import { HttpError } from "../types/error";
@@ -37,6 +38,7 @@ interface SessionContextInput {
 }
 
 const AUTH_HANDOFF_DURATION_IN_MINUTES = 5;
+const PASSWORD_RESET_DURATION_IN_MINUTES = 30;
 
 type UserWithAccess = User & {
   appAccesses: UserApplicationAccess[];
@@ -267,5 +269,37 @@ export async function exchangeAuthHandoff(code: string, application: Application
       url: getApplicationUrl(application)
     },
     user: sanitizeUser(handoff.user)
+  };
+}
+
+export async function requestPasswordReset(email: string) {
+  const user = await prisma.user.findUnique({
+    where: { email }
+  });
+
+  if (!user) {
+    return {
+      message: "Se o e-mail existir, enviaremos as instruções de recuperação."
+    };
+  }
+
+  const token = createSessionToken();
+  const expiresAt = new Date(Date.now() + PASSWORD_RESET_DURATION_IN_MINUTES * 60 * 1000);
+
+  await prisma.passwordResetToken.create({
+    data: {
+      tokenHash: hashPasswordResetToken(token),
+      expiresAt,
+      userId: user.id
+    }
+  });
+
+  return {
+    message: "Solicitação registrada. Configure o envio de e-mail para concluir a recuperação.",
+    ...(process.env.NODE_ENV === "development"
+      ? {
+          resetTokenPreview: token
+        }
+      : {})
   };
 }

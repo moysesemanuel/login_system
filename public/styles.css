@@ -235,6 +235,10 @@ body {
   display: grid;
 }
 
+.auth-form--secondary {
+  margin-top: 12px;
+}
+
 .auth-form label {
   display: grid;
   gap: 8px;
@@ -345,6 +349,17 @@ body {
   background: rgba(255, 255, 255, 0.04);
   color: var(--text);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.text-button {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--accent);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
 }
 
 .primary-button:hover,

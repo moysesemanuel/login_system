@@ -2,6 +2,7 @@ const tabButtons = document.querySelectorAll(".tab-button");
 const tabs = document.querySelector(".tabs");
 const loginForm = document.getElementById("login-form");
 const registerForm = document.getElementById("register-form");
+const forgotPasswordForm = document.getElementById("forgot-password-form");
 const feedback = document.getElementById("feedback");
 const profileOutput = document.getElementById("profile-output");
 const profileEmpty = document.getElementById("profile-empty");
@@ -10,6 +11,8 @@ const productButtons = document.querySelectorAll(".product-button");
 const logoutButton = document.getElementById("logout-button");
 const loginSubmitButton = loginForm.querySelector('button[type="submit"]');
 const registerSubmitButton = registerForm.querySelector('button[type="submit"]');
+const forgotPasswordToggle = document.getElementById("forgot-password-toggle");
+const forgotPasswordSubmitButton = forgotPasswordForm.querySelector('button[type="submit"]');
 const passwordToggleButtons = document.querySelectorAll(".password-toggle");
 const introTitle = document.querySelector(".auth-panel__intro h2");
 const introDescription = document.querySelector(".auth-panel__intro p:last-child");
@@ -49,6 +52,7 @@ function setActiveTab(tabName) {
 
   loginForm.classList.toggle("is-visible", tabName === "login");
   registerForm.classList.toggle("is-visible", tabName === "register");
+  forgotPasswordForm.classList.remove("is-visible");
   clearFeedback();
 }
 
@@ -292,6 +296,11 @@ logoutButton.addEventListener("click", async () => {
   }
 });
 
+forgotPasswordToggle.addEventListener("click", () => {
+  forgotPasswordForm.classList.toggle("is-visible");
+  clearFeedback();
+});
+
 tabButtons.forEach((button) => {
   button.addEventListener("click", () => setActiveTab(button.dataset.tab));
 });
@@ -309,6 +318,30 @@ passwordToggleButtons.forEach((button) => {
     button.classList.toggle("is-active", shouldShow);
     button.setAttribute("aria-label", shouldShow ? "Ocultar senha" : "Mostrar senha");
   });
+});
+
+forgotPasswordForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  clearFeedback();
+  setButtonLoading(forgotPasswordSubmitButton, "Enviando...");
+
+  const formData = new FormData(forgotPasswordForm);
+  const body = Object.fromEntries(formData.entries());
+
+  try {
+    const payload = await request("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify(body)
+    });
+
+    setFeedback("success", payload.message);
+    forgotPasswordForm.reset();
+    forgotPasswordForm.classList.remove("is-visible");
+  } catch (error) {
+    setFeedback("error", error.message);
+  } finally {
+    resetButton(forgotPasswordSubmitButton);
+  }
 });
 
 async function bootstrap() {

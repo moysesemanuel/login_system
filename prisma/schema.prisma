@@ -28,6 +28,7 @@ model User {
   sessions     Session[]
   appAccesses  UserApplicationAccess[]
   handoffs     AuthHandoff[]
+  passwordResetTokens PasswordResetToken[]
 }
 
 model Session {
@@ -66,6 +67,19 @@ model AuthHandoff {
   createdAt  DateTime         @default(now())
   userId     String
   user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id         String   @id @default(cuid())
+  tokenHash  String   @unique
+  expiresAt  DateTime
+  consumedAt DateTime?
+  createdAt  DateTime @default(now())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([expiresAt])

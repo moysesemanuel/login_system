@@ -4,6 +4,7 @@ import {
   applications,
   authorize,
   exchange,
+  forgotPassword,
   login,
   logout,
   profile,
@@ -17,6 +18,7 @@ export const authRouter = Router();
 authRouter.post("/register", asyncHandler(register));
 authRouter.post("/login", asyncHandler(login));
 authRouter.post("/logout", asyncHandler(logout));
+authRouter.post("/forgot-password", asyncHandler(forgotPassword));
 authRouter.post("/exchange", asyncHandler(exchange));
 authRouter.get("/authorize", asyncHandler(authorize));
 authRouter.get("/applications", asyncHandler(applications));

@@ -21,6 +21,12 @@ export function hashHandoffCode(code: string): string {
     .digest("hex");
 }
 
+export function hashPasswordResetToken(token: string): string {
+  return createHash("sha256")
+    .update(`password-reset:${token}:${env.SESSION_SECRET}`)
+    .digest("hex");
+}
+
 export function getSessionExpiresAt(): Date {
   return new Date(Date.now() + SESSION_DURATION_IN_DAYS * 24 * 60 * 60 * 1000);
 }
