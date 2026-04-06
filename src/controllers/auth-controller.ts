@@ -18,6 +18,7 @@ import {
   createAuthHandoff,
   exchangeAuthHandoff,
   getSessionProfile,
+  listUsers,
   loginUser,
   logoutUser,
   requestPasswordReset,
@@ -138,4 +139,12 @@ export async function resetPasswordAction(request: Request, response: Response):
   const result = await resetPassword(data.token, data.password);
 
   response.status(200).json(result);
+}
+
+export async function adminUsers(_request: Request, response: Response): Promise<void> {
+  const users = await listUsers();
+
+  response.status(200).json({
+    users
+  });
 }

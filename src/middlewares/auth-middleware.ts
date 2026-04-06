@@ -32,3 +32,17 @@ export async function ensureAuthenticated(
     response.status(401).json({ message: "Token inválido ou expirado." });
   }
 }
+
+export function ensureAdmin(request: Request, response: Response, next: NextFunction): void {
+  if (!request.auth) {
+    response.status(401).json({ message: "Sessão não encontrada." });
+    return;
+  }
+
+  if (request.auth.role !== "admin") {
+    response.status(403).json({ message: "Acesso restrito a administradores." });
+    return;
+  }
+
+  next();
+}

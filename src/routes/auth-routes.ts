@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import {
   applications,
+  adminUsers,
   authorize,
   exchange,
   forgotPassword,
@@ -11,7 +12,7 @@ import {
   resetPasswordAction,
   register
 } from "../controllers/auth-controller";
-import { ensureAuthenticated } from "../middlewares/auth-middleware";
+import { ensureAdmin, ensureAuthenticated } from "../middlewares/auth-middleware";
 import { asyncHandler } from "../utils/async-handler";
 
 export const authRouter = Router();
@@ -25,3 +26,4 @@ authRouter.post("/exchange", asyncHandler(exchange));
 authRouter.get("/authorize", asyncHandler(authorize));
 authRouter.get("/applications", asyncHandler(applications));
 authRouter.get("/me", ensureAuthenticated, asyncHandler(profile));
+authRouter.get("/admin/users", ensureAuthenticated, ensureAdmin, asyncHandler(adminUsers));

@@ -46,18 +46,26 @@ type UserWithAccess = User & {
   appAccesses: UserApplicationAccess[];
 };
 
+function normalizeRole(role: UserRole): "admin" | "user" {
+  return role === UserRole.ADMIN ? "admin" : "user";
+}
+
 function sanitizeUser(user: UserWithAccess) {
   return {
     id: user.id,
     name: user.name,
     email: user.email,
-    role: user.role.toLowerCase(),
+    role: normalizeRole(user.role),
     createdAt: user.createdAt,
     applications: user.appAccesses.map((access: UserApplicationAccess) => ({
       key: fromApplicationScope(access.application),
       label: getApplicationLabel(fromApplicationScope(access.application))
     }))
   };
+}
+
+function sortApplications(appAccesses: UserApplicationAccess[]) {
+  return [...appAccesses].sort((left, right) => left.application.localeCompare(right.application));
 }
 
 async function createSessionForUser(
@@ -354,4 +362,22 @@ export async function resetPassword(token: string, password: string) {
   return {
     message: "Senha redefinida com sucesso. Faça login com a nova senha."
   };
+}
+
+export async function listUsers() {
+  const users = await prisma.user.findMany({
+    orderBy: {
+      createdAt: "desc"
+    },
+    include: {
+      appAccesses: true
+    }
+  });
+
+  return users.map((user) =>
+    sanitizeUser({
+      ...user,
+      appAccesses: sortApplications(user.appAccesses)
+    })
+  );
 }

@@ -5,7 +5,7 @@ declare global {
         sessionId: string;
         userId: string;
         email: string;
-        role: string;
+        role: "admin" | "user";
         application: "erp" | "help-desk";
         redirectUrl: string;
       };
