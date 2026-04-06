@@ -1,14 +1,10 @@
-const tabButtons = document.querySelectorAll(".tab-button");
-const tabs = document.querySelector(".tabs");
 const loginForm = document.getElementById("login-form");
-const registerForm = document.getElementById("register-form");
 const forgotPasswordForm = document.getElementById("forgot-password-form");
 const resetPasswordForm = document.getElementById("reset-password-form");
 const feedback = document.getElementById("feedback");
 const productSwitcher = document.querySelector(".product-switcher");
 const productButtons = document.querySelectorAll(".product-button");
 const loginSubmitButton = loginForm.querySelector('button[type="submit"]');
-const registerSubmitButton = registerForm.querySelector('button[type="submit"]');
 const forgotPasswordToggle = document.getElementById("forgot-password-toggle");
 const forgotPasswordSubmitButton = forgotPasswordForm.querySelector('button[type="submit"]');
 const resetPasswordSubmitButton = resetPasswordForm.querySelector('button[type="submit"]');
@@ -26,30 +22,15 @@ const PRODUCT_URLS = {
 const PRODUCT_COPY = {
   erp: {
     title: "Entre na sua conta",
-    description: "Faça login para acessar o ERP ou crie uma conta para testar o fluxo completo.",
+    description: "Faça login para acessar o ERP com seu usuário autorizado.",
     label: "ERP"
   },
   "help-desk": {
     title: "Acesse seu painel de suporte",
-    description:
-      "Entre para acompanhar tickets, filas e atendimento do Help Desk ou crie sua conta de teste.",
+    description: "Entre para acompanhar tickets, filas e atendimento do Help Desk.",
     label: "Help Desk"
   }
 };
-
-function setActiveTab(tabName) {
-  tabs.dataset.active = tabName;
-
-  tabButtons.forEach((button) => {
-    button.classList.toggle("is-active", button.dataset.tab === tabName);
-  });
-
-  loginForm.classList.toggle("is-visible", tabName === "login");
-  registerForm.classList.toggle("is-visible", tabName === "register");
-  forgotPasswordForm.classList.remove("is-visible");
-  resetPasswordForm.classList.remove("is-visible");
-  clearFeedback();
-}
 
 function getSelectedProduct() {
   return productSwitcher.dataset.product || "erp";
@@ -106,10 +87,6 @@ function resetButton(button) {
 }
 
 function setTabsDisabled(disabled) {
-  tabButtons.forEach((button) => {
-    button.disabled = disabled;
-  });
-
   productButtons.forEach((button) => {
     button.disabled = disabled;
   });
@@ -215,43 +192,9 @@ loginForm.addEventListener("submit", async (event) => {
   }
 });
 
-registerForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
-  clearFeedback();
-  setTabsDisabled(true);
-  setButtonLoading(registerSubmitButton, "Criando conta...");
-
-  const formData = new FormData(registerForm);
-  const body = Object.fromEntries(formData.entries());
-
-  try {
-    const payload = await request("/auth/register", {
-      method: "POST",
-      body: JSON.stringify({
-        ...body,
-        application: getSelectedProduct()
-      })
-    });
-
-    setActiveTab("login");
-    setFeedback("success", payload.message);
-    registerForm.reset();
-    setTimeout(() => redirectToSelectedProduct(), 450);
-  } catch (error) {
-    setFeedback("error", error.message);
-  } finally {
-    resetButton(registerSubmitButton);
-    setTabsDisabled(false);
-  }
-});
-
 forgotPasswordToggle.addEventListener("click", () => {
   forgotPasswordForm.classList.toggle("is-visible");
   clearFeedback();
-});
-
-tabButtons.forEach((button) => {
-  button.addEventListener("click", () => setActiveTab(button.dataset.tab));
 });
 
 productButtons.forEach((button) => {
@@ -339,7 +282,6 @@ async function bootstrap() {
 
   if (mode === "reset-password" && resetToken) {
     loginForm.classList.remove("is-visible");
-    registerForm.classList.remove("is-visible");
     forgotPasswordForm.classList.remove("is-visible");
     resetPasswordForm.classList.add("is-visible");
   }
