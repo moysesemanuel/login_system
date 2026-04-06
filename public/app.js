@@ -5,11 +5,8 @@ const registerForm = document.getElementById("register-form");
 const forgotPasswordForm = document.getElementById("forgot-password-form");
 const resetPasswordForm = document.getElementById("reset-password-form");
 const feedback = document.getElementById("feedback");
-const profileOutput = document.getElementById("profile-output");
-const profileEmpty = document.getElementById("profile-empty");
 const productSwitcher = document.querySelector(".product-switcher");
 const productButtons = document.querySelectorAll(".product-button");
-const logoutButton = document.getElementById("logout-button");
 const loginSubmitButton = loginForm.querySelector('button[type="submit"]');
 const registerSubmitButton = registerForm.querySelector('button[type="submit"]');
 const forgotPasswordToggle = document.getElementById("forgot-password-toggle");
@@ -19,11 +16,6 @@ const passwordToggleButtons = document.querySelectorAll(".password-toggle");
 const introTitle = document.querySelector(".auth-panel__intro h2");
 const introDescription = document.querySelector(".auth-panel__intro p:last-child");
 const productDestination = document.getElementById("product-destination");
-const openProductLink = document.getElementById("open-product-link");
-const metricProduct = document.getElementById("metric-product");
-const metricStatus = document.getElementById("metric-status");
-const metricRole = document.getElementById("metric-role");
-const metricEmail = document.getElementById("metric-email");
 const initialSearchParams = new URLSearchParams(window.location.search);
 
 const PRODUCT_URLS = {
@@ -76,10 +68,7 @@ function updateProductCopy(product) {
   productSwitcher.dataset.product = product;
   introTitle.textContent = copy.title;
   introDescription.textContent = copy.description;
-  metricProduct.textContent = copy.label;
   productDestination.textContent = `Destino após login: ${copy.label} em ${destinationUrl}`;
-  openProductLink.href = getAuthorizeUrl(product);
-  openProductLink.textContent = `Abrir ${copy.label}`;
 
   productButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.product === product);
@@ -124,27 +113,6 @@ function setTabsDisabled(disabled) {
   productButtons.forEach((button) => {
     button.disabled = disabled;
   });
-}
-
-function renderProfile(data) {
-  profileEmpty.style.display = "none";
-  profileOutput.classList.add("is-visible");
-  profileOutput.textContent = JSON.stringify(data, null, 2);
-  metricProduct.textContent = data.application?.label || PRODUCT_COPY[getSelectedProduct()].label;
-  metricStatus.textContent = "Online";
-  metricRole.textContent = data.user?.role || "user";
-  metricEmail.textContent = data.user?.email || "Sem sessão";
-  openProductLink.href = getAuthorizeUrl(data.application?.key || getSelectedProduct());
-}
-
-function resetProfile() {
-  profileEmpty.style.display = "block";
-  profileOutput.classList.remove("is-visible");
-  profileOutput.textContent = "";
-  metricProduct.textContent = PRODUCT_COPY[getSelectedProduct()].label;
-  metricStatus.textContent = "Offline";
-  metricRole.textContent = "Visitante";
-  metricEmail.textContent = "Sem sessão";
 }
 
 function parseErrorMessage(payload) {
@@ -207,14 +175,10 @@ async function loadApplicationConfig() {
 
 async function loadProfile() {
   try {
-    const payload = await request("/auth/me", {
+    await request("/auth/me", {
       method: "GET"
     });
-
-    renderProfile(payload);
   } catch (error) {
-    resetProfile();
-
     if (error.status !== 401) {
       setFeedback("error", error.message);
     }
@@ -271,7 +235,6 @@ registerForm.addEventListener("submit", async (event) => {
 
     setActiveTab("login");
     setFeedback("success", payload.message);
-    await loadProfile();
     registerForm.reset();
     setTimeout(() => redirectToSelectedProduct(), 450);
   } catch (error) {
@@ -279,23 +242,6 @@ registerForm.addEventListener("submit", async (event) => {
   } finally {
     resetButton(registerSubmitButton);
     setTabsDisabled(false);
-  }
-});
-
-logoutButton.addEventListener("click", async () => {
-  clearFeedback();
-  setButtonLoading(logoutButton, "Saindo...");
-
-  try {
-    await request("/auth/logout", {
-      method: "POST"
-    });
-
-    resetProfile();
-    setActiveTab("login");
-    setFeedback("success", "Sessão encerrada.");
-  } finally {
-    resetButton(logoutButton);
   }
 });
 
@@ -397,8 +343,6 @@ async function bootstrap() {
     forgotPasswordForm.classList.remove("is-visible");
     resetPasswordForm.classList.add("is-visible");
   }
-
-  await loadProfile();
 }
 
 bootstrap();

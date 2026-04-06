@@ -397,100 +397,6 @@ body {
   animation: spin 700ms linear infinite;
 }
 
-.profile-card {
-  margin-top: 22px;
-  padding: 20px;
-  border-radius: 22px;
-  background: var(--panel-strong);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.profile-dashboard {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 18px;
-}
-
-.dashboard-metric {
-  padding: 14px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.dashboard-label {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 0.78rem;
-  color: var(--muted);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.dashboard-metric strong {
-  display: block;
-  font-size: 0.98rem;
-  line-height: 1.35;
-  word-break: break-word;
-}
-
-.dashboard-metric--wide {
-  grid-column: span 3;
-}
-
-.profile-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 18px;
-}
-
-.profile-card h2 {
-  margin: 8px 0 0;
-  font-size: 1.35rem;
-}
-
-.profile-empty {
-  color: var(--muted);
-  line-height: 1.6;
-}
-
-.open-product-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
-  padding: 12px 16px;
-  border-radius: 14px;
-  background: rgba(0, 182, 230, 0.12);
-  border: 1px solid rgba(0, 182, 230, 0.28);
-  color: var(--text);
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.open-product-link:hover {
-  transform: translateY(-1px);
-}
-
-.profile-output {
-  display: none;
-  overflow: auto;
-  margin: 0;
-  padding: 16px;
-  border-radius: 18px;
-  background: #041120;
-  color: #d7f7ff;
-  font-size: 0.9rem;
-  line-height: 1.65;
-}
-
-.profile-output.is-visible {
-  display: block;
-}
-
 @keyframes spin {
   to {
     transform: rotate(360deg);
@@ -501,23 +407,6 @@ body {
   .page-shell {
     justify-content: center;
     padding: 20px;
-  }
-
-  .profile-dashboard {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-metric--wide {
-    grid-column: auto;
-  }
-
-  .profile-card__header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .ghost-button {
-    width: 100%;
   }
 }
 
